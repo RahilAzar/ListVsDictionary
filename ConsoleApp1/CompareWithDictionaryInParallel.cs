@@ -18,31 +18,28 @@ namespace ConsoleApp1
         {
             Stopwatch st = new Stopwatch();
             st.Start();
-            Task.Run(() =>
+
+            foreach (var item in builder.Today)
             {
-                Parallel.ForEach(builder.Today, item =>
-                 {
-                     TodayDictionary.Add(item.Name, item);
-                 });
-
-                Parallel.ForEach(builder.Yesterday, item =>
+                TodayDictionary.Add(item.Name, item);
+            }
+          
+            Parallel.ForEach(builder.Yesterday, item =>
+            {
+                Entity sameEntity = new Entity();
+                TodayDictionary.TryGetValue(item.Name, out sameEntity);
+                if (sameEntity == null)
+                    _removedEntity.Add(item);
+                else if (sameEntity.Price != item.Price)
                 {
-                    Entity sameEntity = new Entity();
-                    TodayDictionary.TryGetValue(item.Name, out sameEntity);
-                    if (sameEntity == null)
-                        _removedEntity.Add(item);
-                    else if (sameEntity.Price != item.Price)
-                    {
-                        _changedPrice.Add(item);
-                    }
-                });
-                var newEntityKeys = builder.Today.Select(e => e.Name)
-                    .Except(builder.Yesterday.Select(e => e.Name));
-
-                Parallel.ForEach(newEntityKeys, item =>
-                {
-                    _newEntity.Add(builder.Today.Where(k => k.Name == item).First());
-                });
+                    _changedPrice.Add(item);
+                }
+            });
+            var newEntityKeys = builder.Today.Select(e => e.Name)
+                   .Except(builder.Yesterday.Select(e => e.Name));
+            Parallel.ForEach(newEntityKeys, item =>
+            {
+                _newEntity.Add(builder.Today.Where(k => k.Name == item).First());
             });
             st.Stop();
             Console.WriteLine("Compare with Dictionary in parallel: " + st.ElapsedMilliseconds);

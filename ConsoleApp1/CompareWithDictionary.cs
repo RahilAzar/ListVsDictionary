@@ -22,7 +22,6 @@ namespace ConsoleApp1
             {
                 TodayDictionary.Add(item.Name, item);
             }
-
             foreach (var item in builder.Yesterday)
             {
                 Entity sameEntity = new Entity();

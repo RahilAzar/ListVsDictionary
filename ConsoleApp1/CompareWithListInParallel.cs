@@ -17,26 +17,24 @@ namespace ConsoleApp1
         {
             Stopwatch st = new Stopwatch();
             st.Start();
-            Task.Run( () => {
-                Parallel.ForEach(builder.Yesterday, item =>
+            Parallel.ForEach(builder.Yesterday, item =>
+            {
+                var sameEntity = builder.Today.Where(e => e.Name == item.Name).FirstOrDefault();
+                if (sameEntity == null)
+                    _removedEntity.Add(item);
+                else if (sameEntity.Price != item.Price)
                 {
-                    var sameEntity = builder.Today.Where(e => e.Name == item.Name).FirstOrDefault();
-                    if (sameEntity == null)
-                        _removedEntity.Add(item);
-                    else if (sameEntity.Price != item.Price)
-                    {
-                        _changedPrice.Add(item);
-                    }
-                });
-                var newEntityKeys = builder.Today.Select(e => e.Name)
-                    .Except(builder.Yesterday.Select(e => e.Name));
-
-                Parallel.ForEach(newEntityKeys, item =>
-                {
-                    _newEntity.Add(builder.Today.Where(k => k.Name == item).First());
-                });
-                st.Stop();
+                    _changedPrice.Add(item);
+                }
             });
+            var newEntityKeys = builder.Today.Select(e => e.Name)
+                    .Except(builder.Yesterday.Select(e => e.Name));
+            Parallel.ForEach(newEntityKeys, item =>
+            {
+                _newEntity.Add(builder.Today.Where(k => k.Name == item).First());
+            });
+            st.Stop();
+
             Console.WriteLine("Compare with List in parallel: " + st.ElapsedMilliseconds);
         }
     }
